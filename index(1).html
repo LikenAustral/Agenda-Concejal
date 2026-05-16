@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Concejal Abarca</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d0d10;--s1:#16161d;--s2:#1e1e28;--s3:#262633;
+  --border:#2a2a38;--text:#eeeef5;--muted:#6a6a80;
+  --accent:#b8a4ff;--accent2:#ff9e7a;
+  --q1:#ff6b6b;--q2:#7ac9a7;--q3:#ffb347;--q4:#6baed6;
+  --green:#7ac9a7;--red:#ff6b6b;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px 16px 60px;max-width:640px;margin:0 auto;}
+h1{font-family:'DM Serif Display',serif;font-size:1.9rem;letter-spacing:-0.5px;}
+.tagline{color:var(--muted);font-size:0.82rem;margin-bottom:24px;margin-top:2px;}
+.nav{display:flex;gap:4px;background:var(--s1);border-radius:12px;padding:4px;margin-bottom:22px;}
+.nav-btn{flex:1;padding:9px 6px;border:none;border-radius:9px;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.nav-btn.active{background:var(--s2);color:var(--text);}
+.view{display:none;}.view.active{display:block;}
+
+/* NOTAS */
+.notes-area{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
+.notes-area label{font-size:0.75rem;color:var(--accent);font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:8px;}
+textarea.notes-input{width:100%;min-height:160px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;}
+textarea.notes-input:focus{border-color:var(--accent);}
+textarea.notes-input::placeholder{color:var(--muted);}
+.notes-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.notes-meta span{font-size:0.75rem;color:var(--muted);}
+.btn-ia{display:flex;align-items:center;gap:8px;padding:11px 20px;background:linear-gradient(135deg,var(--accent),#8b6cff);color:#0d0d10;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;transition:opacity .2s;width:100%;justify-content:center;margin-bottom:14px;}
+.btn-ia:hover{opacity:.85;}
+.btn-ia:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ia .spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.3);border-top-color:#0d0d10;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.btn-ia.loading .spinner{display:block;}
+.btn-ia.loading .btn-ia-text{display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.preview-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;display:none;}
+.preview-box h3{font-size:0.78rem;color:var(--accent2);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;}
+.preview-task{background:var(--s2);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+.preview-task.selected{border-color:var(--accent);}
+.preview-task .pt-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.preview-task.selected .pt-check{background:var(--accent);border-color:var(--accent);}
+.preview-task .pt-body{flex:1;}
+.preview-task .pt-title{font-size:0.88rem;font-weight:500;margin-bottom:3px;}
+.pt-meta{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+.pill.q1{background:rgba(255,107,107,.15);color:var(--q1);}
+.pill.q2{background:rgba(122,201,167,.15);color:var(--q2);}
+.pill.q3{background:rgba(255,179,71,.15);color:var(--q3);}
+.pill.q4{background:rgba(107,174,214,.15);color:var(--q4);}
+.pill.date{background:rgba(184,164,255,.1);color:var(--accent);}
+.preview-actions{display:flex;gap:8px;margin-top:12px;}
+.btn-confirm{flex:1;padding:10px;background:var(--green);color:#0d0d10;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.85rem;cursor:pointer;}
+.btn-discard{padding:10px 16px;background:var(--s2);color:var(--muted);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;}
+.saved-note{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;}
+.sn-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.sn-date{font-size:0.72rem;color:var(--muted);}
+.sn-text{font-size:0.83rem;color:var(--text);line-height:1.5;white-space:pre-wrap;}
+.sn-actions{display:flex;gap:6px;margin-top:8px;}
+.sn-btn{padding:5px 10px;border-radius:7px;font-size:0.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border);background:var(--s2);color:var(--muted);}
+.sn-btn.convert{color:var(--accent);border-color:rgba(184,164,255,.3);}
+.sn-btn.del{color:var(--red);border-color:rgba(255,107,107,.2);}
+
+/* TAREAS */
+.filter-bar{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;}
+.filter-btn{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.filter-btn.active{background:var(--s2);color:var(--text);border-color:var(--accent);}
+.add-task-toggle{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--s1);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:0.85rem;cursor:pointer;margin-bottom:16px;}
+.add-form{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;display:none;}
+.add-form.open{display:block;}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.form-row input,.form-row select,.form-row textarea{flex:1;min-width:130px;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.83rem;outline:none;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--accent);}
+.form-row textarea{min-height:60px;resize:vertical;}
+.form-row select option{background:#1e1e28;}
+.form-row input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5);}
+.btn-save{width:100%;padding:10px;background:var(--accent);color:#0d0d10;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;margin-top:4px;}
+.section-label{font-size:0.72rem;color:var(--muted);font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.section-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tasks-list{display:flex;flex-direction:column;gap:8px;}
+.task-card{background:var(--s1);border:1px solid var(--border);border-radius:13px;padding:13px 14px;display:flex;gap:11px;align-items:flex-start;position:relative;overflow:hidden;}
+.task-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:13px 0 0 13px;}
+.task-card.q1::before{background:var(--q1);}
+.task-card.q2::before{background:var(--q2);}
+.task-card.q3::before{background:var(--q3);}
+.task-card.q4::before{background:var(--q4);}
+.task-card.done{opacity:.4;}
+.task-card.done .tc-title{text-decoration:line-through;}
+.tc-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.tc-body{flex:1;min-width:0;}
+.tc-title{font-size:0.88rem;font-weight:500;line-height:1.4;margin-bottom:4px;}
+.tc-note{font-size:0.78rem;color:var(--muted);line-height:1.4;margin-top:2px;}
+.tc-actions{display:flex;gap:4px;margin-top:6px;}
+.tc-btn{padding:3px 8px;border-radius:6px;font-size:0.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);}
+.tc-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.overdue-tag{font-size:0.7rem;color:var(--red);font-weight:600;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-state p{font-size:0.85rem;}
+.badge{background:var(--accent);color:#0d0d10;border-radius:20px;padding:1px 7px;font-size:0.7rem;font-weight:700;display:none;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:0.83rem;color:var(--text);opacity:0;transition:all .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* RECORDATORIOS */
+.notif-banner{background:var(--s1);border:1px solid rgba(184,164,255,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.notif-banner .nb-icon{font-size:1.4rem;flex-shrink:0;}
+.notif-banner .nb-body{flex:1;}
+.notif-banner .nb-title{font-size:0.83rem;font-weight:600;margin-bottom:2px;}
+.notif-banner .nb-sub{font-size:0.75rem;color:var(--muted);}
+.btn-notif{padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#0d0d10;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.78rem;cursor:pointer;flex-shrink:0;}
+.btn-notif.off{background:var(--s2);color:var(--muted);border:1px solid var(--border);}
+.reminder-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.reminder-row label{font-size:0.78rem;color:var(--muted);}
+.reminder-row input[type="time"]{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.8rem;outline:none;}
+.reminder-row input[type="time"]:focus{border-color:var(--accent);}
+.reminder-row input[type="time"]::-webkit-calendar-picker-indicator{filter:invert(.5);}
+.reminder-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:0.7rem;background:rgba(184,164,255,.12);color:var(--accent);}
+</style>
+</head>
+<body>
+
+<h1>Agenda Concejal Abarca</h1>
+<p class="tagline">Notas rápidas → Tareas con prioridad</p>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchView('notas')" id="nav-notas">📝 Bloc de Notas</button>
+  <button class="nav-btn" onclick="switchView('tareas')" id="nav-tareas">
+    ✅ Tareas <span class="badge" id="pending-badge"></span>
+  </button>
+</nav>
+
+<!-- NOTAS -->
+<div class="view active" id="view-notas">
+  <div class="notes-area">
+    <label>✦ Nueva nota rápida</label>
+    <textarea class="notes-input" id="new-note-input" placeholder="Pega aquí lo que anotaste en WhatsApp o escribe libremente...&#10;&#10;Ej: llamar a Pedro mañana, revisar presupuesto urgente, comprar materiales para el viernes"></textarea>
+    <div class="notes-meta">
+      <span id="note-char-count">0 caracteres</span>
+    </div>
+  </div>
+
+  <button class="btn-ia" id="btn-ia" onclick="procesarConIA()">
+    <span class="btn-ia-text">✦ Convertir a tareas con IA</span>
+    <div class="spinner"></div>
+  </button>
+
+  <div class="preview-box" id="preview-box">
+    <h3>Tareas detectadas — selecciona las que quieres agregar</h3>
+    <div id="preview-list"></div>
+    <div class="preview-actions">
+      <button class="btn-confirm" onclick="confirmarTareas()">✓ Agregar seleccionadas</button>
+      <button class="btn-discard" onclick="descartarPreview()">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="saved-notes-list"></div>
+</div>
+
+<!-- TAREAS -->
+<div class="view" id="view-tareas">
+
+  <div class="notif-banner" id="notif-banner">
+    <div class="nb-icon">🔔</div>
+    <div class="nb-body">
+      <div class="nb-title">Recordatorios</div>
+      <div class="nb-sub" id="notif-status">Activa las notificaciones para recibir recordatorios de tus tareas</div>
+    </div>
+    <button class="btn-notif" id="btn-notif" onclick="toggleNotificaciones()">Activar</button>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
+    <button class="filter-btn" onclick="setFilter('q1',this)"><span style="color:var(--q1)">●</span> Urgente+Imp.</button>
+    <button class="filter-btn" onclick="setFilter('q2',this)"><span style="color:var(--q2)">●</span> Planificar</button>
+    <button class="filter-btn" onclick="setFilter('q3',this)"><span style="color:var(--q3)">●</span> Delegar</button>
+    <button class="filter-btn" onclick="setFilter('q4',this)"><span style="color:var(--q4)">●</span> Sin urgencia</button>
+    <button class="filter-btn" onclick="setFilter('done',this)">Completadas</button>
+  </div>
+
+  <div class="add-task-toggle" onclick="toggleAddForm()">+ Agregar tarea manualmente</div>
+
+  <div class="add-form" id="add-form">
+    <div class="form-row">
+      <input type="text" id="f-title" placeholder="Título de la tarea *">
+    </div>
+    <div class="form-row">
+      <select id="f-quad">
+        <option value="q1">🔴 Urgente + Importante</option>
+        <option value="q2">🟢 Importante (planificar)</option>
+        <option value="q3">🟡 Urgente (delegar)</option>
+        <option value="q4">🔵 Sin urgencia</option>
+      </select>
+      <input type="date" id="f-date">
+    </div>
+    <div class="reminder-row">
+      <label>🔔 Recordatorio:</label>
+      <input type="time" id="f-reminder" placeholder="--:--">
+      <span style="font-size:.72rem;color:var(--muted);">(opcional)</span>
+    </div>
+    <div class="form-row">
+      <textarea id="f-note" placeholder="Nota o contexto (opcional)"></textarea>
+    </div>
+    <button class="btn-save" onclick="guardarTareaManual()">Guardar tarea</button>
+  </div>
+
+  <div id="tasks-container"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let tasks = [], notes = [], currentFilter = 'all', previewTasks = [], editingId = null;
+const TKEY = 'org_tasks_v2', NKEY = 'org_notes_v2', RKEY = 'org_notified';
+
+// Storage
+async function loadData() {
+  try { const r = localStorage.getItem(TKEY); if(r) tasks = JSON.parse(r); } catch(e){ tasks=[]; }
+  try { const r = localStorage.getItem(NKEY); if(r) notes = JSON.parse(r); } catch(e){ notes=[]; }
+  renderTasks(); renderNotes(); updateBadge();
+  initNotificaciones();
+}
+async function saveTasks(){ try{ localStorage.setItem(TKEY, JSON.stringify(tasks)); }catch(e){} }
+async function saveNotes(){ try{ localStorage.setItem(NKEY, JSON.stringify(notes)); }catch(e){} }
+
+// Nav
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('nav-'+v).classList.add('active');
+}
+
+// ── NOTIFICACIONES ──
+let notifInterval = null;
+let notifiedToday = new Set();
+
+function initNotificaciones() {
+  const perm = Notification.permission;
+  const banner = document.getElementById('notif-banner');
+  const btn = document.getElementById('btn-notif');
+  const status = document.getElementById('notif-status');
+  if (perm === 'granted') {
+    btn.textContent = '✓ Activas'; btn.classList.add('off');
+    status.textContent = 'Recibirás recordatorios cuando la app esté abierta';
+    iniciarChequeo();
+  } else if (perm === 'denied') {
+    btn.textContent = 'Bloqueadas'; btn.classList.add('off');
+    status.textContent = 'Las notificaciones están bloqueadas en tu navegador';
+  }
+}
+
+async function toggleNotificaciones() {
+  if (Notification.permission === 'granted') return;
+  const perm = await Notification.requestPermission();
+  initNotificaciones();
+  if (perm === 'granted') showToast('¡Recordatorios activados!');
+}
+
+function iniciarChequeo() {
+  if (notifInterval) return;
+  // Cargar notificadas hoy
+  try { notifiedToday = new Set(JSON.parse(localStorage.getItem(RKEY)||'[]')); } catch(e){}
+  checarRecordatorios();
+  notifInterval = setInterval(checarRecordatorios, 60000);
+}
+
+function checarRecordatorios() {
+  if (Notification.permission !== 'granted') return;
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  tasks.forEach(t => {
+    if (t.done || !t.date || !t.reminder) return;
+    const key = t.id + '_' + t.date;
+    if (notifiedToday.has(key)) return;
+    // Notificar si la fecha es hoy y la hora coincide (±1 min) o si está vencida con recordatorio
+    const esHoy = t.date === todayStr;
+    const vencida = t.date < todayStr;
+    const horaCoincide = t.reminder === hhmm;
+    if ((esHoy && horaCoincide) || (vencida && !notifiedToday.has(key+'_late'))) {
+      const titulo = vencida ? `⚠️ Tarea vencida` : `🔔 Recordatorio`;
+      const cuerpo = vencida ? `"${t.title}" venció el ${t.date}` : `"${t.title}"`;
+      new Notification(titulo, { body: cuerpo, icon: '' });
+      notifiedToday.add(vencida ? key+'_late' : key);
+      try { localStorage.setItem(RKEY, JSON.stringify([...notifiedToday])); } catch(e){}
+    }
+  });
+}
+
+// Notes
+document.getElementById('new-note-input').addEventListener('input', function(){
+  document.getElementById('note-char-count').textContent = this.value.length + ' caracteres';
+});
+
+function renderNotes() {
+  const el = document.getElementById('saved-notes-list');
+  if (!notes.length) { el.innerHTML=''; return; }
+  el.innerHTML = `<div style="font-size:.75rem;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Notas guardadas</div>`
+    + notes.slice().reverse().map(n=>`
+    <div class="saved-note">
+      <div class="sn-header">
+        <span style="font-size:.78rem;font-weight:600;color:var(--accent)">Nota</span>
+        <span class="sn-date">${fmtDate(n.ts)}</span>
+      </div>
+      <div class="sn-text">${esc(n.text)}</div>
+      <div class="sn-actions">
+        <button class="sn-btn convert" onclick="convertirNota('${n.id}')">✦ Convertir a tareas</button>
+        <button class="sn-btn del" onclick="eliminarNota('${n.id}')">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function convertirNota(id) {
+  const nota = notes.find(n=>n.id===id);
+  if (!nota) return;
+  document.getElementById('new-note-input').value = nota.text;
+  document.getElementById('note-char-count').textContent = nota.text.length + ' caracteres';
+  procesarConIA();
+}
+async function eliminarNota(id) {
+  notes = notes.filter(n=>n.id!==id);
+  await saveNotes(); renderNotes();
+}
+
+// IA
+async function procesarConIA() {
+  const text = document.getElementById('new-note-input').value.trim();
+  if (!text) { showToast('Escribe algo primero'); return; }
+  const btn = document.getElementById('btn-ia');
+  btn.disabled=true; btn.classList.add('loading');
+  document.getElementById('preview-box').style.display='none';
+
+  const nota = { id:uid(), text, ts:Date.now() };
+  notes.push(nota);
+  await saveNotes(); renderNotes();
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`Eres un asistente de productividad. Extrae tareas concretas del texto y clasifícalas en la matriz de Eisenhower.
+Responde SOLO con JSON válido sin backticks ni texto extra.
+Formato: {"tareas":[{"titulo":"...","cuadrante":"q1|q2|q3|q4","fecha":"YYYY-MM-DD o null","nota":"breve o vacío"}]}
+q1=Urgente+Importante, q2=Importante no urgente, q3=Urgente no importante, q4=Ninguno.`,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(b=>b.text||'').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    previewTasks = parsed.tareas.map(t=>({...t, selected:true, id:uid()}));
+    mostrarPreview();
+    document.getElementById('new-note-input').value='';
+    document.getElementById('note-char-count').textContent='0 caracteres';
+  } catch(e) {
+    showToast('Error al procesar. Intenta nuevamente.');
+  }
+  btn.disabled=false; btn.classList.remove('loading');
+}
+
+function mostrarPreview() {
+  const qL = {q1:'Urgente + Importante',q2:'Planificar',q3:'Delegar',q4:'Sin urgencia'};
+  document.getElementById('preview-list').innerHTML = previewTasks.map(t=>`
+    <div class="preview-task selected" id="pt-${t.id}" onclick="togglePT('${t.id}')">
+      <div class="pt-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0d0d10" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="pt-body">
+        <div class="pt-title">${esc(t.titulo)}</div>
+        <div class="pt-meta">
+          <span class="pill ${t.cuadrante}">${qL[t.cuadrante]}</span>
+          ${t.fecha?`<span class="pill date">📅 ${t.fecha}</span>`:''}
+        </div>
+        ${t.nota?`<div style="font-size:.76rem;color:var(--muted);margin-top:3px;">${esc(t.nota)}</div>`:''}
+      </div>
+    </div>`).join('');
+  document.getElementById('preview-box').style.display='block';
+}
+
+function togglePT(id) {
+  const t = previewTasks.find(x=>x.id===id);
+  if(!t) return;
+  t.selected=!t.selected;
+  document.getElementById('pt-'+id).classList.toggle('selected',t.selected);
+}
+
+async function confirmarTareas() {
+  const sel = previewTasks.filter(t=>t.selected);
+  if(!sel.length){ showToast('Selecciona al menos una'); return; }
+  sel.forEach(t=>tasks.push({id:t.id,title:t.titulo,quad:t.cuadrante,date:t.fecha||null,note:t.nota||'',reminder:null,done:false,created:Date.now()}));
+  await saveTasks();
+  descartarPreview(); renderTasks(); updateBadge();
+  showToast(`✓ ${sel.length} tarea${sel.length>1?'s':''} agregada${sel.length>1?'s':''}`);
+  switchView('tareas');
+}
+
+function descartarPreview() {
+  document.getElementById('preview-box').style.display='none';
+  previewTasks=[];
+}
+
+// Tasks
+function setFilter(f,btn) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function toggleAddForm() {
+  document.getElementById('add-form').classList.toggle('open');
+}
+
+async function guardarTareaManual() {
+  const title = document.getElementById('f-title').value.trim();
+  if(!title){ showToast('Escribe el título'); return; }
+  const reminder = document.getElementById('f-reminder').value || null;
+  if(editingId) {
+    const t=tasks.find(x=>x.id===editingId);
+    if(t){ t.title=title; t.quad=document.getElementById('f-quad').value; t.date=document.getElementById('f-date').value||null; t.note=document.getElementById('f-note').value.trim(); t.reminder=reminder; }
+    editingId=null;
+    document.querySelector('.btn-save').textContent='Guardar tarea';
+  } else {
+    tasks.push({id:uid(),title,quad:document.getElementById('f-quad').value,date:document.getElementById('f-date').value||null,note:document.getElementById('f-note').value.trim(),reminder,done:false,created:Date.now()});
+  }
+  await saveTasks();
+  document.getElementById('f-title').value=''; document.getElementById('f-date').value=''; document.getElementById('f-note').value=''; document.getElementById('f-reminder').value='';
+  document.getElementById('add-form').classList.remove('open');
+  renderTasks(); updateBadge(); showToast('Tarea guardada');
+}
+
+async function toggleDone(id) {
+  const t=tasks.find(x=>x.id===id);
+  if(t){ t.done=!t.done; await saveTasks(); renderTasks(); updateBadge(); }
+}
+
+async function eliminarTarea(id) {
+  tasks=tasks.filter(x=>x.id!==id);
+  await saveTasks(); renderTasks(); updateBadge(); showToast('Tarea eliminada');
+}
+
+function editarTarea(id) {
+  const t=tasks.find(x=>x.id===id);
+  if(!t) return;
+  editingId=id;
+  document.getElementById('f-title').value=t.title;
+  document.getElementById('f-quad').value=t.quad;
+  document.getElementById('f-date').value=t.date||'';
+  document.getElementById('f-note').value=t.note||'';
+  document.getElementById('f-reminder').value=t.reminder||'';
+  document.getElementById('add-form').classList.add('open');
+  document.querySelector('.btn-save').textContent='Actualizar tarea';
+  document.getElementById('add-form').scrollIntoView({behavior:'smooth'});
+}
+
+function renderTasks() {
+  const container = document.getElementById('tasks-container');
+  const today = new Date().toISOString().split('T')[0];
+  let filtered = currentFilter==='done' ? tasks.filter(t=>t.done)
+    : currentFilter!=='all' ? tasks.filter(t=>t.quad===currentFilter&&!t.done)
+    : tasks.filter(t=>!t.done);
+
+  if(!filtered.length){
+    container.innerHTML=`<div class="empty-state"><p>${currentFilter==='done'?'Aún no has completado tareas':'No hay tareas en esta categoría'}</p></div>`;
+    return;
+  }
+
+  const qL={q1:'🔴 Urgente + Importante',q2:'🟢 Planificar',q3:'🟡 Delegar',q4:'🔵 Sin urgencia'};
+  const groups = (currentFilter==='all'||currentFilter==='done') ? ['q1','q2','q3','q4'].filter(q=>filtered.some(t=>t.quad===q)) : [currentFilter];
+  let html='';
+
+  groups.forEach(q=>{
+    const group=filtered.filter(t=>t.quad===q);
+    if(!group.length) return;
+    html+=`<div class="section-label"><span class="section-dot" style="background:var(--${q})"></span>${qL[q]}</div><div class="tasks-list">`;
+    group.sort((a,b)=>{
+      if(a.date&&b.date) return a.date.localeCompare(b.date);
+      if(a.date) return -1; if(b.date) return 1;
+      return b.created-a.created;
+    }).forEach(t=>{
+      const overdue=t.date&&t.date<today&&!t.done;
+      html+=`<div class="task-card ${t.quad}${t.done?' done':''}">
+        <div class="tc-check" onclick="toggleDone('${t.id}')">
+          ${t.done?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+        </div>
+        <div class="tc-body">
+          <div class="tc-title">${esc(t.title)}</div>
+          ${t.note?`<div class="tc-note">${esc(t.note)}</div>`:''}
+          <div class="tc-actions">
+            ${!t.done?`<button class="tc-btn" onclick="editarTarea('${t.id}')">Editar</button>`:''}
+            <button class="tc-btn" onclick="eliminarTarea('${t.id}')">Eliminar</button>
+          </div>
+        </div>
+        <div class="tc-right">
+          ${t.date?`<span class="pill date">📅 ${t.date}</span>`:''}
+          ${t.reminder?`<span class="reminder-tag">🔔 ${t.reminder}</span>`:''}
+          ${overdue?`<span class="overdue-tag">Vencida</span>`:''}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  container.innerHTML=html;
+}
+
+function updateBadge() {
+  const n=tasks.filter(t=>!t.done).length;
+  const b=document.getElementById('pending-badge');
+  b.textContent=n; b.style.display=n?'inline':'none';
+}
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+loadData();
+</script>
+
+// Storage
+async function loadData() {
+  try { const r = JSON.parse(localStorage.getItem(TKEY)); if(r) tasks = r; } catch(e){ tasks=[]; }
+  try { const r = JSON.parse(localStorage.getItem(NKEY)); if(r) notes = r; } catch(e){ notes=[]; }
+  renderTasks(); renderNotes(); updateBadge();
+}
+async function saveTasks(){ try{ localStorage.setItem(TKEY, JSON.stringify(tasks)); }catch(e){} }
+async function saveNotes(){ try{ localStorage.setItem(NKEY, JSON.stringify(notes)); }catch(e){} }
+
+// Nav
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('nav-'+v).classList.add('active');
+}
+
+// Notes
+document.getElementById('new-note-input').addEventListener('input', function(){
+  document.getElementById('note-char-count').textContent = this.value.length + ' caracteres';
+});
+
+function renderNotes() {
+  const el = document.getElementById('saved-notes-list');
+  if (!notes.length) { el.innerHTML=''; return; }
+  el.innerHTML = `<div style="font-size:.75rem;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Notas guardadas</div>`
+    + notes.slice().reverse().map(n=>`
+    <div class="saved-note">
+      <div class="sn-header">
+        <span style="font-size:.78rem;font-weight:600;color:var(--accent)">Nota</span>
+        <span class="sn-date">${fmtDate(n.ts)}</span>
+      </div>
+      <div class="sn-text">${esc(n.text)}</div>
+      <div class="sn-actions">
+        <button class="sn-btn convert" onclick="convertirNota('${n.id}')">✦ Convertir a tareas</button>
+        <button class="sn-btn del" onclick="eliminarNota('${n.id}')">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function convertirNota(id) {
+  const nota = notes.find(n=>n.id===id);
+  if (!nota) return;
+  document.getElementById('new-note-input').value = nota.text;
+  document.getElementById('note-char-count').textContent = nota.text.length + ' caracteres';
+  procesarConIA();
+}
+async function eliminarNota(id) {
+  notes = notes.filter(n=>n.id!==id);
+  await saveNotes(); renderNotes();
+}
+
+// IA
+async function procesarConIA() {
+  const text = document.getElementById('new-note-input').value.trim();
+  if (!text) { showToast('Escribe algo primero'); return; }
+  const btn = document.getElementById('btn-ia');
+  btn.disabled=true; btn.classList.add('loading');
+  document.getElementById('preview-box').style.display='none';
+
+  const nota = { id:uid(), text, ts:Date.now() };
+  notes.push(nota);
+  await saveNotes(); renderNotes();
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`Eres un asistente de productividad. Extrae tareas concretas del texto y clasifícalas en la matriz de Eisenhower.
+Responde SOLO con JSON válido sin backticks ni texto extra.
+Formato: {"tareas":[{"titulo":"...","cuadrante":"q1|q2|q3|q4","fecha":"YYYY-MM-DD o null","nota":"breve o vacío"}]}
+q1=Urgente+Importante, q2=Importante no urgente, q3=Urgente no importante, q4=Ninguno.`,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(b=>b.text||'').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    previewTasks = parsed.tareas.map(t=>({...t, selected:true, id:uid()}));
+    mostrarPreview();
+    document.getElementById('new-note-input').value='';
+    document.getElementById('note-char-count').textContent='0 caracteres';
+  } catch(e) {
+    showToast('Error al procesar. Intenta nuevamente.');
+  }
+  btn.disabled=false; btn.classList.remove('loading');
+}
+
+function mostrarPreview() {
+  const qL = {q1:'Urgente + Importante',q2:'Planificar',q3:'Delegar',q4:'Sin urgencia'};
+  document.getElementById('preview-list').innerHTML = previewTasks.map(t=>`
+    <div class="preview-task selected" id="pt-${t.id}" onclick="togglePT('${t.id}')">
+      <div class="pt-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0d0d10" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="pt-body">
+        <div class="pt-title">${esc(t.titulo)}</div>
+        <div class="pt-meta">
+          <span class="pill ${t.cuadrante}">${qL[t.cuadrante]}</span>
+          ${t.fecha?`<span class="pill date">📅 ${t.fecha}`:``}
+        </div>
+        ${t.nota?`<div style="font-size:.76rem;color:var(--muted);margin-top:3px;">${esc(t.nota)}</div>`:''}
+      </div>
+    </div>`).join('');
+  document.getElementById('preview-box').style.display='block';
+}
+
+function togglePT(id) {
+  const t = previewTasks.find(x=>x.id===id);
+  if(!t) return;
+  t.selected=!t.selected;
+  document.getElementById('pt-'+id).classList.toggle('selected',t.selected);
+}
+
+async function confirmarTareas() {
+  const sel = previewTasks.filter(t=>t.selected);
+  if(!sel.length){ showToast('Selecciona al menos una'); return; }
+  sel.forEach(t=>tasks.push({id:t.id,title:t.titulo,quad:t.cuadrante,date:t.fecha||null,note:t.nota||'',done:false,created:Date.now()}));
+  await saveTasks();
+  descartarPreview(); renderTasks(); updateBadge();
+  showToast(`✓ ${sel.length} tarea${sel.length>1?'s':''} agregada${sel.length>1?'s':''}`);
+  switchView('tareas');
+}
+
+function descartarPreview() {
+  document.getElementById('preview-box').style.display='none';
+  previewTasks=[];
+}
+
+// Tasks
+function setFilter(f,btn) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function toggleAddForm() {
+  document.getElementById('add-form').classList.toggle('open');
+}
+
+async function guardarTareaManual() {
+  const title = document.getElementById('f-title').value.trim();
+  if(!title){ showToast('Escribe el título'); return; }
+  if(editingId) {
+    const t=tasks.find(x=>x.id===editingId);
+    if(t){ t.title=title; t.quad=document.getElementById('f-quad').value; t.date=document.getElementById('f-date').value||null; t.note=document.getElementById('f-note').value.trim(); }
+    editingId=null;
+    document.querySelector('.btn-save').textContent='Guardar tarea';
+  } else {
+    tasks.push({id:uid(),title,quad:document.getElementById('f-quad').value,date:document.getElementById('f-date').value||null,note:document.getElementById('f-note').value.trim(),done:false,created:Date.now()});
+  }
+  await saveTasks();
+  document.getElementById('f-title').value=''; document.getElementById('f-date').value=''; document.getElementById('f-note').value='';
+  document.getElementById('add-form').classList.remove('open');
+  renderTasks(); updateBadge(); showToast('Tarea guardada');
+}
+
+async function toggleDone(id) {
+  const t=tasks.find(x=>x.id===id);
+  if(t){ t.done=!t.done; await saveTasks(); renderTasks(); updateBadge(); }
+}
+
+async function eliminarTarea(id) {
+  tasks=tasks.filter(x=>x.id!==id);
+  await saveTasks(); renderTasks(); updateBadge(); showToast('Tarea eliminada');
+}
+
+function editarTarea(id) {
+  const t=tasks.find(x=>x.id===id);
+  if(!t) return;
+  editingId=id;
+  document.getElementById('f-title').value=t.title;
+  document.getElementById('f-quad').value=t.quad;
+  document.getElementById('f-date').value=t.date||'';
+  document.getElementById('f-note').value=t.note||'';
+  document.getElementById('add-form').classList.add('open');
+  document.querySelector('.btn-save').textContent='Actualizar tarea';
+  document.getElementById('add-form').scrollIntoView({behavior:'smooth'});
+}
+
+function renderTasks() {
+  const container = document.getElementById('tasks-container');
+  const today = new Date().toISOString().split('T')[0];
+  let filtered = currentFilter==='done' ? tasks.filter(t=>t.done)
+    : currentFilter!=='all' ? tasks.filter(t=>t.quad===currentFilter&&!t.done)
+    : tasks.filter(t=>!t.done);
+
+  if(!filtered.length){
+    container.innerHTML=`<div class="empty-state"><p>${currentFilter==='done'?'Aún no has completado tareas':'No hay tareas en esta categoría'}</p></div>`;
+    return;
+  }
+
+  const qL={q1:'🔴 Urgente + Importante',q2:'🟢 Planificar',q3:'🟡 Delegar',q4:'🔵 Sin urgencia'};
+  const groups = (currentFilter==='all'||currentFilter==='done') ? ['q1','q2','q3','q4'].filter(q=>filtered.some(t=>t.quad===q)) : [currentFilter];
+  let html='';
+
+  groups.forEach(q=>{
+    const group=filtered.filter(t=>t.quad===q);
+    if(!group.length) return;
+    html+=`<div class="section-label"><span class="section-dot" style="background:var(--${q})"></span>${qL[q]}</div><div class="tasks-list">`;
+    group.sort((a,b)=>{
+      if(a.date&&b.date) return a.date.localeCompare(b.date);
+      if(a.date) return -1; if(b.date) return 1;
+      return b.created-a.created;
+    }).forEach(t=>{
+      const overdue=t.date&&t.date<today&&!t.done;
+      html+=`<div class="task-card ${t.quad}${t.done?' done':''}">
+        <div class="tc-check" onclick="toggleDone('${t.id}')">
+          ${t.done?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+        </div>
+        <div class="tc-body">
+          <div class="tc-title">${esc(t.title)}</div>
+          ${t.note?`<div class="tc-note">${esc(t.note)}</div>`:''}
+          <div class="tc-actions">
+            ${!t.done?`<button class="tc-btn" onclick="editarTarea('${t.id}')">Editar</button>`:''}
+            <button class="tc-btn" onclick="eliminarTarea('${t.id}')">Eliminar</button>
+          </div>
+        </div>
+        <div class="tc-right">
+          ${t.date?`<span class="pill date${overdue?' ':''}">📅 ${t.date}</span>`:''}
+          ${overdue?`<span class="overdue-tag">Vencida</span>`:''}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  container.innerHTML=html;
+}
+
+function updateBadge() {
+  const n=tasks.filter(t=>!t.done).length;
+  const b=document.getElementById('pending-badge');
+  b.textContent=n; b.style.display=n?'inline':'none';
+}
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+loadData();
+</script>
+</body>
+</html>
