@@ -6,8 +6,8 @@ const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -26,7 +26,6 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Cache-first para el app shell; red primero (con fallback a caché) para todo lo demás.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
@@ -37,15 +36,14 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// --- Notificaciones push (recordatorios reales, app cerrada) ---
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = { title: 'Recordatorio', body: event.data ? event.data.text() : '' }; }
   const title = data.title || '🔔 Recordatorio — Agenda Concejal';
   const options = {
     body: data.body || '',
-    icon: './icons/icon-192.png',
-    badge: './icons/icon-192.png',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
     data: { url: data.url || './index.html' }
   };
   event.waitUntil(self.registration.showNotification(title, options));
