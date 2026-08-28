@@ -75,7 +75,8 @@ textarea.notes-input::placeholder{color:var(--muted);}
 .nb-title{font-size:0.83rem;font-weight:600;margin-bottom:2px;}
 .nb-sub{font-size:0.75rem;color:var(--muted);}
 .btn-notif{padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#0d0d10;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.78rem;cursor:pointer;flex-shrink:0;}
-.btn-notif.off{background:var(--s2);color:var(--muted);border:1px solid var(--border);}
+.btn-notif.on{background:var(--green);color:#0d0d10;cursor:default;}
+.btn-notif.blocked{background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.35);}
 
 /* --- tareas --- */
 .filter-bar{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;}
@@ -230,12 +231,16 @@ textarea.notes-input::placeholder{color:var(--muted);}
         </select>
         <input type="date" id="f-date">
       </div>
+      <div class="section-label" style="margin:10px 0 6px;">🔔 Recordatorios puntuales</div>
+      <div id="reminder-list"></div>
+      <div class="add-task-toggle" style="margin-bottom:10px;padding:8px 14px;font-size:.78rem;" onclick="agregarFilaRecordatorio()">+ Agregar recordatorio</div>
+      <div class="section-label" style="margin:10px 0 6px;">🔁 Recordatorio diario antes de la fecha límite</div>
       <div class="reminder-row">
-        <label>🔔 Recordatorio:</label>
-        <input type="date" id="f-reminder-date">
-        <input type="time" id="f-reminder-time">
-        <span style="font-size:.72rem;color:var(--muted);">(opcional)</span>
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="f-daily-active" style="width:auto;"> Activar</label>
+        <input type="number" id="f-daily-days" min="1" max="30" placeholder="días antes" style="width:100px;">
+        <input type="time" id="f-daily-time">
       </div>
+      <div style="font-size:.7rem;color:var(--muted);margin:-4px 0 10px;">Ej: 3 días antes, todos los días a esa hora, hasta la fecha límite o hasta marcarla como hecha. Necesita que la tarea tenga fecha límite arriba.</div>
       <div class="form-row"><textarea id="f-note" placeholder="Nota o contexto (opcional)"></textarea></div>
       <button class="btn-save" onclick="guardarTareaManual()">Guardar tarea</button>
     </div>
@@ -306,6 +311,7 @@ import {
 var items = []; // tareas + eventos, sincronizados desde Firestore
 var notes = [];
 var currentFilter = 'all', previewTasks = [], editingId = null;
+var formReminders = []; // recordatorios puntuales del formulario de tarea en edición/creación
 var currentUid = null;
 var unsubItems = null, unsubNotes = null;
 var TODAY = new Date();
@@ -361,12 +367,16 @@ function initNotificaciones(){
   var perm = ('Notification' in window) ? Notification.permission : 'denied';
   var btn = document.getElementById('btn-notif');
   var status = document.getElementById('notif-status');
+  btn.classList.remove('on','blocked');
   if (perm === 'granted') {
-    btn.textContent = '✓ Activas'; btn.classList.add('off');
+    btn.textContent = '✓ Activadas'; btn.classList.add('on');
     status.textContent = 'Recibirás recordatorios aunque la app esté cerrada';
   } else if (perm === 'denied') {
-    btn.textContent = 'Bloqueadas'; btn.classList.add('off');
-    status.textContent = 'Las notificaciones están bloqueadas en tu navegador';
+    btn.textContent = '✕ Bloqueadas'; btn.classList.add('blocked');
+    status.textContent = 'Bloqueaste las notificaciones — actívalas desde el ícono 🔒 o ⓘ junto a la dirección del sitio en Chrome';
+  } else {
+    btn.textContent = 'Activar';
+    status.textContent = 'Activa las notificaciones para recibir recordatorios reales';
   }
 }
 window.toggleNotificaciones = function(){
@@ -462,19 +472,81 @@ window.setFilter = function(f, btn){
   btn.classList.add('active');
   renderTasks();
 };
-window.toggleAddForm = function(){ document.getElementById('add-form').classList.toggle('open'); };
+window.toggleAddForm = function(){
+  var willOpen = !document.getElementById('add-form').classList.contains('open');
+  if (willOpen && !editingId) {
+    // se abre para una tarea NUEVA (no venimos de "Editar") -> dejar todo limpio
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-date').value = '';
+    document.getElementById('f-note').value = '';
+    document.getElementById('f-quad').value = 'q1';
+    document.getElementById('f-daily-active').checked = false;
+    document.getElementById('f-daily-days').value = '';
+    document.getElementById('f-daily-time').value = '';
+    formReminders = [];
+    renderReminderRows();
+    document.querySelector('#add-form .btn-save').textContent = 'Guardar tarea';
+  }
+  document.getElementById('add-form').classList.toggle('open');
+};
+
+// ---- recordatorios puntuales (múltiples por tarea) ----
+function renderReminderRows(){
+  var el = document.getElementById('reminder-list');
+  if (!formReminders.length) {
+    el.innerHTML = '<div style="font-size:.75rem;color:var(--muted);margin-bottom:8px;">Sin recordatorios puntuales agregados (opcional)</div>';
+    return;
+  }
+  var html = '';
+  formReminders.forEach(function(r){
+    html += '<div class="reminder-row" style="background:var(--s2);border-radius:9px;padding:8px 10px;">'
+      + '<input type="date" value="'+(r.date||'')+'" onchange="actualizarFilaRecordatorio(\''+r.id+'\',\'date\',this.value)">'
+      + '<input type="time" value="'+(r.time||'')+'" onchange="actualizarFilaRecordatorio(\''+r.id+'\',\'time\',this.value)">'
+      + '<button class="tc-btn" style="color:var(--red);border-color:rgba(255,107,107,.3);" onclick="quitarFilaRecordatorio(\''+r.id+'\')">Quitar</button>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+window.agregarFilaRecordatorio = function(){
+  formReminders.push({ id: uid(), date:'', time:'' });
+  renderReminderRows();
+};
+window.quitarFilaRecordatorio = function(id){
+  formReminders = formReminders.filter(function(r){ return r.id!==id; });
+  renderReminderRows();
+};
+window.actualizarFilaRecordatorio = function(id, field, val){
+  var r = formReminders.find(function(x){ return x.id===id; });
+  if (r) r[field] = val;
+};
 
 window.guardarTareaManual = function(){
   var title = document.getElementById('f-title').value.trim();
   if (!title) { showToast('Escribe el título'); return; }
-  var rDate = document.getElementById('f-reminder-date').value;
-  var rTime = document.getElementById('f-reminder-time').value;
-  var reminder = (rDate && rTime) ? { date:rDate, time:rTime } : null;
+
+  var reminders = {};
+  formReminders.forEach(function(r){
+    if (r.date && r.time) reminders[r.id] = { date:r.date, time:r.time, notified:false };
+  });
+
+  var dailyActive = document.getElementById('f-daily-active').checked;
+  var dailyDays = Number(document.getElementById('f-daily-days').value) || 0;
+  var dailyTime = document.getElementById('f-daily-time').value;
+  var dueDate = document.getElementById('f-date').value || null;
+
+  if (dailyActive && !dueDate) {
+    showToast('El recordatorio diario necesita que la tarea tenga fecha límite'); return;
+  }
+  var reminderDaily = (dailyActive && dailyDays>0 && dailyTime) ? { active:true, daysBefore:dailyDays, time:dailyTime, lastFiredDate:null } : null;
+
   var data = {
     type:'task', title:title, quad:document.getElementById('f-quad').value,
-    date:document.getElementById('f-date').value||null,
+    date:dueDate,
     note:document.getElementById('f-note').value.trim(),
-    reminder:reminder, notified:false
+    reminder:null, // el campo antiguo de un solo recordatorio queda en desuso
+    reminders:reminders,
+    reminderDaily:reminderDaily,
+    notified:false
   };
   if (editingId) {
     updateDoc(itemDoc(currentUid, editingId), data);
@@ -484,7 +556,12 @@ window.guardarTareaManual = function(){
     data.done = false; data.created = Date.now();
     setDoc(itemDoc(currentUid, uid()), data);
   }
-  ['f-title','f-date','f-note','f-reminder-date','f-reminder-time'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['f-title','f-date','f-note'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('f-daily-active').checked = false;
+  document.getElementById('f-daily-days').value = '';
+  document.getElementById('f-daily-time').value = '';
+  formReminders = [];
+  renderReminderRows();
   document.getElementById('add-form').classList.remove('open');
   showToast('Tarea guardada');
 };
@@ -506,13 +583,47 @@ window.editarTarea = function(id){
   document.getElementById('f-quad').value = found.quad;
   document.getElementById('f-date').value = found.date||'';
   document.getElementById('f-note').value = found.note||'';
-  document.getElementById('f-reminder-date').value = (found.reminder&&found.reminder.date)?found.reminder.date:'';
-  document.getElementById('f-reminder-time').value = (found.reminder&&found.reminder.time)?found.reminder.time:'';
+
+  formReminders = [];
+  if (found.reminders && typeof found.reminders === 'object' && Object.keys(found.reminders).length) {
+    Object.keys(found.reminders).forEach(function(rid){
+      var r = found.reminders[rid];
+      formReminders.push({ id: rid, date:r.date||'', time:r.time||'' });
+    });
+  } else if (found.reminder && found.reminder.date) {
+    // migra el recordatorio único del formato antiguo a una fila editable
+    formReminders.push({ id: uid(), date:found.reminder.date, time:found.reminder.time||'' });
+  }
+  renderReminderRows();
+
+  var fd = found.reminderDaily;
+  document.getElementById('f-daily-active').checked = !!(fd && fd.active);
+  document.getElementById('f-daily-days').value = fd ? fd.daysBefore : '';
+  document.getElementById('f-daily-time').value = fd ? fd.time : '';
+
   document.getElementById('add-form').classList.add('open');
   document.querySelector('#add-form .btn-save').textContent = 'Actualizar tarea';
   document.getElementById('add-form').scrollIntoView({behavior:'smooth'});
 };
 
+function reminderSummary(t){
+  var parts = [];
+  if (t.reminders && typeof t.reminders === 'object') {
+    var keys = Object.keys(t.reminders);
+    if (keys.length === 1) {
+      var r = t.reminders[keys[0]];
+      parts.push('🔔 '+r.date+' '+r.time);
+    } else if (keys.length > 1) {
+      parts.push('🔔 '+keys.length+' recordatorios');
+    }
+  } else if (t.reminder && t.reminder.date) {
+    parts.push('🔔 '+t.reminder.date+' '+t.reminder.time);
+  }
+  if (t.reminderDaily && t.reminderDaily.active) {
+    parts.push('🔁 diario '+t.reminderDaily.time+' (desde '+t.reminderDaily.daysBefore+'d antes)');
+  }
+  return parts;
+}
 function renderTasks(){
   var container = document.getElementById('tasks-container');
   var today = fmtKey(new Date());
@@ -538,7 +649,8 @@ function renderTasks(){
       return (b.created||0)-(a.created||0);
     }).forEach(function(t){
       var overdue = t.date && t.date<today && !t.done;
-      html += '<div class="task-card '+t.quad+(t.done?' done':'')+'"><div class="tc-check" onclick="toggleDone(\''+t.id+'\')">'+(t.done?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</div><div class="tc-body"><div class="tc-title">'+esc(t.title)+'</div>'+(t.note?'<div class="tc-note">'+esc(t.note)+'</div>':'')+'<div class="tc-actions">'+((!t.done)?'<button class="tc-btn" onclick="editarTarea(\''+t.id+'\')">Editar</button>':'')+'<button class="tc-btn" onclick="eliminarTarea(\''+t.id+'\')">Eliminar</button></div></div><div class="tc-right">'+(t.date?'<span class="pill date">📅 '+t.date+'</span>':'')+(t.reminder&&t.reminder.date?'<span class="reminder-tag">🔔 '+t.reminder.date+' '+t.reminder.time+'</span>':'')+(overdue?'<span class="overdue-tag">Vencida</span>':'')+'</div></div>';
+      var rTags = reminderSummary(t).map(function(p){ return '<span class="reminder-tag">'+p+'</span>'; }).join('');
+      html += '<div class="task-card '+t.quad+(t.done?' done':'')+'"><div class="tc-check" onclick="toggleDone(\''+t.id+'\')">'+(t.done?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</div><div class="tc-body"><div class="tc-title">'+esc(t.title)+'</div>'+(t.note?'<div class="tc-note">'+esc(t.note)+'</div>':'')+'<div class="tc-actions">'+((!t.done)?'<button class="tc-btn" onclick="editarTarea(\''+t.id+'\')">Editar</button>':'')+'<button class="tc-btn" onclick="eliminarTarea(\''+t.id+'\')">Eliminar</button></div></div><div class="tc-right">'+(t.date?'<span class="pill date">📅 '+t.date+'</span>':'')+rTags+(overdue?'<span class="overdue-tag">Vencida</span>':'')+'</div></div>';
     });
     html += '</div>';
   });
