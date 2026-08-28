@@ -75,8 +75,9 @@ textarea.notes-input::placeholder{color:var(--muted);}
 .nb-title{font-size:0.83rem;font-weight:600;margin-bottom:2px;}
 .nb-sub{font-size:0.75rem;color:var(--muted);}
 .btn-notif{padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#0d0d10;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.78rem;cursor:pointer;flex-shrink:0;}
-.btn-notif.on{background:var(--green);color:#0d0d10;cursor:default;}
+.btn-notif.on{background:var(--green);color:#0d0d10;}
 .btn-notif.blocked{background:rgba(255,107,107,.15);color:var(--red);border:1px solid rgba(255,107,107,.35);}
+.btn-notif.paused{background:var(--s2);color:var(--muted);border:1px solid var(--border);}
 
 /* --- tareas --- */
 .filter-bar{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;}
@@ -304,7 +305,7 @@ import {
   auth, db, loginConGoogle, logout, onAuthChange, itemsCollection, itemDoc,
   notesCollection, noteDoc,
   setDoc, updateDoc, deleteDoc, onSnapshot, query, serverTimestamp,
-  registrarPush, AI_CONVERT_URL
+  registrarPush, desactivarPush, AI_CONVERT_URL
 } from './firebase-init.js';
 
 // ---------- estado ----------
@@ -363,17 +364,27 @@ window.switchView = function(v){
 };
 
 // ---------- notificaciones ----------
+// El navegador no deja "revocar" el permiso de notificaciones por código, así
+// que llevamos nosotros mismos el estado de "activas/pausadas en este
+// dispositivo" en localStorage (independiente del permiso del navegador).
+// Si nunca se tocó el botón desde esta actualización, asumimos que sigue
+// activo tal como estaba (para no confundir a alguien que ya las tenía andando).
+function pushActivoLocal(){ return localStorage.getItem('acPushActivo') !== '0'; }
+
 function initNotificaciones(){
   var perm = ('Notification' in window) ? Notification.permission : 'denied';
   var btn = document.getElementById('btn-notif');
   var status = document.getElementById('notif-status');
-  btn.classList.remove('on','blocked');
-  if (perm === 'granted') {
-    btn.textContent = '✓ Activadas'; btn.classList.add('on');
-    status.textContent = 'Recibirás recordatorios aunque la app esté cerrada';
-  } else if (perm === 'denied') {
+  btn.classList.remove('on','blocked','paused');
+  if (perm === 'denied') {
     btn.textContent = '✕ Bloqueadas'; btn.classList.add('blocked');
     status.textContent = 'Bloqueaste las notificaciones — actívalas desde el ícono 🔒 o ⓘ junto a la dirección del sitio en Chrome';
+  } else if (perm === 'granted' && pushActivoLocal()) {
+    btn.textContent = '✓ Activadas'; btn.classList.add('on');
+    status.textContent = 'Recibirás recordatorios aunque la app esté cerrada — toca para pausar';
+  } else if (perm === 'granted' && !pushActivoLocal()) {
+    btn.textContent = 'Pausadas — reactivar'; btn.classList.add('paused');
+    status.textContent = 'No recibirás recordatorios en este dispositivo hasta que las reactives';
   } else {
     btn.textContent = 'Activar';
     status.textContent = 'Activa las notificaciones para recibir recordatorios reales';
@@ -381,10 +392,29 @@ function initNotificaciones(){
 }
 window.toggleNotificaciones = function(){
   if (!currentUid) { showToast('No hay sesión activa — vuelve a iniciar sesión', 5000); return; }
+  var perm = ('Notification' in window) ? Notification.permission : 'denied';
+
+  if (perm === 'granted' && pushActivoLocal()) {
+    // Estaban activas -> las pausamos en este dispositivo
+    desactivarPush(currentUid).then(function(){
+      localStorage.setItem('acPushActivo', '0');
+      initNotificaciones();
+      showToast('Recordatorios pausados en este dispositivo');
+    }).catch(function(err){
+      console.error('desactivarPush error', err);
+      showToast('No se pudo pausar: ' + (err && err.message ? err.message : err), 6000);
+    });
+    return;
+  }
+
   showToast('Solicitando permiso...', 4000);
   registrarPush(currentUid).then(function(token){
-    if (token) { initNotificaciones(); showToast('✓ Recordatorios activados'); }
-    else showToast('No se pudo activar — revisa permisos del navegador', 6000);
+    if (token) {
+      localStorage.setItem('acPushActivo', '1');
+      initNotificaciones(); showToast('✓ Recordatorios activados');
+    } else {
+      showToast('No se pudo activar — revisa permisos del navegador', 6000);
+    }
   }).catch(function(err){
     console.error('registrarPush error', err);
     showToast('Error al activar: ' + (err && err.message ? err.message : err), 8000);
