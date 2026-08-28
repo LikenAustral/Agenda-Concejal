@@ -380,10 +380,14 @@ function initNotificaciones(){
   }
 }
 window.toggleNotificaciones = function(){
-  if (!currentUid) return;
+  if (!currentUid) { showToast('No hay sesión activa — vuelve a iniciar sesión', 5000); return; }
+  showToast('Solicitando permiso...', 4000);
   registrarPush(currentUid).then(function(token){
-    if (token) { initNotificaciones(); showToast('Recordatorios activados'); }
-    else showToast('No se pudo activar — revisa permisos del navegador');
+    if (token) { initNotificaciones(); showToast('✓ Recordatorios activados'); }
+    else showToast('No se pudo activar — revisa permisos del navegador', 6000);
+  }).catch(function(err){
+    console.error('registrarPush error', err);
+    showToast('Error al activar: ' + (err && err.message ? err.message : err), 8000);
   });
 };
 
@@ -761,7 +765,7 @@ window.eliminarEvento = function(id){
 function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtDate(ts){ return new Date(ts).toLocaleDateString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
-function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2500); }
+function showToast(msg, duration){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, duration||2500); }
 
 renderCalendar();
 </script>
