@@ -21,7 +21,7 @@
   --hero-ctl-b:rgba(255,255,255,.20); --hero-on:#FFFFFF; --hero-on-t:#0D2B45;
   --verde:#3C6B4F; --verde-ink:#FFFFFF; --green-soft:#F2F6F2; --green-soft-b:#DCE7DE;
   --rojo:#B3311B; --ocre:#9A6516;
-  --cb:#B6BDC2; --field:#FFFFFF;
+  --cb:#B6BDC2; --field:#FFFFFF; --nav-h:76px;
   color-scheme:light;
 }
 /* ===== TEMA OSCURO (misma estructura, mismos componentes) ===== */
@@ -34,14 +34,14 @@
   --hero-ctl-b:rgba(255,255,255,.14); --hero-on:#1E3F59; --hero-on-t:#E9EFF4;
   --verde:#5FA87E; --verde-ink:#08160E; --green-soft:#15231A; --green-soft-b:#274031;
   --rojo:#E4705A; --ocre:#D2A24E;
-  --cb:#4A555E; --field:#111619;
+  --cb:#4A555E; --field:#111619; --nav-h:76px;
   color-scheme:dark;
 }
 
 body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;
   background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased;
   max-width:640px;margin:0 auto;
-  padding:calc(18px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom));}
+  padding:calc(18px + env(safe-area-inset-top)) 14px 0;}
 .hidden{display:none !important;}
 :focus-visible{outline:2px solid var(--fiordo);outline-offset:2px;border-radius:8px;}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
@@ -101,7 +101,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 /* ---- botones ---- */
 .btn-wide{display:block;width:100%;text-align:center;font-size:14px;font-weight:700;color:var(--fiordo);
   padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;margin-bottom:18px;min-height:44px;}
-.btn-prim{background:var(--fiordo);color:var(--fiordo-ink);border:none;border-radius:12px;
+.btn-prim{background:var(--verde);color:var(--verde-ink);border:none;border-radius:12px;
   font-size:15px;font-weight:700;padding:14px;cursor:pointer;width:100%;}
 .btn-sec{background:var(--surface);border:1px solid var(--border);color:var(--fiordo);border-radius:12px;
   font-size:15px;font-weight:700;padding:14px;cursor:pointer;width:100%;}
@@ -129,7 +129,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 .chips{display:flex;gap:6px;flex-wrap:wrap;}
 .chip{font-size:13px;font-weight:600;padding:8px 13px;border-radius:10px;border:1px solid var(--border);
   background:var(--surface-2);color:var(--t2);cursor:pointer;min-height:38px;}
-.chip.on{background:var(--fiordo);border-color:var(--fiordo);color:var(--fiordo-ink);}
+.chip.on{background:var(--verde);border-color:var(--verde);color:var(--verde-ink);}
 
 /* ---- calendario ---- */
 .arrows{display:flex;gap:6px;}
@@ -137,8 +137,8 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
   display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .arrow svg{width:15px;height:15px;stroke:var(--fiordo);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
 .week-band{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px;}
-.wb-day{text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;
-  padding:8px 1px;cursor:pointer;min-height:52px;}
+.wb-day{text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  padding:6px 1px;cursor:pointer;min-height:48px;}
 .wb-day .d{font-size:10px;color:var(--t3);font-weight:600;}
 .wb-day .n{font-size:15px;font-weight:700;margin-top:2px;}
 .wb-day.fin .d,.wb-day.fin .n{color:var(--t4);}
@@ -167,12 +167,13 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 
 /* ---- franja de encabezado con identidad ---- */
 .hero{background:var(--hero);color:var(--hero-t);border-radius:0 0 22px 22px;
+  border-bottom:3px solid var(--verde);
   margin:calc(-18px - env(safe-area-inset-top)) -14px 18px;
-  padding:calc(20px + env(safe-area-inset-top)) 16px 18px;}
+  padding:calc(18px + env(safe-area-inset-top)) 16px 15px;}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
 .hero-title{font-size:24px;font-weight:800;letter-spacing:-.6px;line-height:1.15;color:var(--hero-t);}
 .hero-sub{font-size:13px;color:var(--hero-sub);margin-top:2px;}
-.hero-tools{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap;}
+.hero-tools{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-top:12px;flex-wrap:wrap;}
 .hero .theme-btn,.hero .arrow{background:var(--hero-ctl);border:1px solid var(--hero-ctl-b);color:var(--hero-t);}
 .hero .theme-btn svg,.hero .arrow svg{stroke:var(--hero-t);}
 .hero .avatar{background:var(--hero-ctl);border:1px solid var(--hero-ctl-b);color:var(--hero-t);}
@@ -182,7 +183,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 .hero .icon-btn{background:var(--hero-ctl);border:1px solid var(--hero-ctl-b);color:var(--hero-t);}
 .hero .icon-btn.on{background:var(--hero-on);color:var(--hero-on-t);border-color:var(--hero-on);}
 .hero .arrows{display:flex;gap:7px;}
-.hero .week-band{margin:16px 0 0;}
+.hero .week-band{margin:12px 0 0;}
 .hero .wb-day{background:var(--hero-ctl);border-color:var(--hero-ctl-b);}
 .hero .wb-day .d{color:var(--hero-sub);}
 .hero .wb-day .n{color:var(--hero-t);}
@@ -192,7 +193,8 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 .hero .wb-day.sel{border-color:var(--hero-t);border-width:2px;padding:7px 0;}
 
 /* ---- navegación flotante ---- */
-.nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;
+.nav-space{height:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom));flex-shrink:0;}
+.nav{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
   background:var(--surface);border:1px solid var(--border);border-top:1px solid var(--border);
   border-radius:22px;display:flex;padding:7px 6px;max-width:616px;margin:0 auto;
   box-shadow:0 2px 10px rgba(13,43,69,.07);}
@@ -228,7 +230,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 
 /* ---- notas ---- */
 .note-field{width:100%;background:var(--field);border:1px solid var(--border);border-radius:16px;padding:16px;
-  min-height:104px;font-family:inherit;font-size:16px;color:var(--t1);line-height:1.55;resize:vertical;outline:none;margin-bottom:10px;}
+  min-height:76px;font-family:inherit;font-size:16px;color:var(--t1);line-height:1.55;resize:vertical;outline:none;margin-bottom:10px;overflow:hidden;}
 .note-field:focus{border-color:var(--fiordo);}
 .note-field::placeholder{color:var(--t4);}
 .note-meta{font-size:12px;color:var(--t3);margin:-6px 0 11px;}
@@ -301,7 +303,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 
 /* ---- cabecera compacta de usuario ---- */
 .topacts{display:flex;gap:7px;flex-shrink:0;}
-.avatar{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--blue-soft);
+.avatar{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--blue-soft);
   color:var(--fiordo);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
 .menu-bd{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.18);display:none;}
 .menu-bd.open{display:block;}
@@ -349,7 +351,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 .view{display:none;} .view.active{display:block;}
 .empty-state{text-align:center;padding:44px 20px;color:var(--t3);}
 .empty-state p{font-size:15px;line-height:1.6;}
-.toast{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
+.toast{position:fixed;bottom:calc(var(--nav-h) + 22px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--t1);color:var(--bg);border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;
   opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:99;max-width:90%;text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -388,6 +390,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
       <button class="btn-notif" id="btn-notif" onclick="toggleNotificaciones()">Activar</button>
     </div>
     <div id="inicio-container"></div>
+    <div class="nav-space"></div>
   </section>
 
   <!-- ===== TAREAS ===== -->
@@ -447,6 +450,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
       <button class="btn-prim btn-save" style="margin-top:8px;" onclick="guardarTareaManual()">Guardar tarea</button>
     </div>
     <div id="tasks-container"></div>
+    <div class="nav-space"></div>
   </section>
 
   <!-- ===== CALENDARIO ===== -->
@@ -496,6 +500,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
       </div>
       <button class="btn-prim" style="margin-top:8px;" onclick="guardarEvento()">Guardar evento</button>
     </div>
+    <div class="nav-space"></div>
   </section>
 
   <!-- ===== NOTAS ===== -->
@@ -521,6 +526,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
     </div>
     <h2 class="sec">Recientes</h2>
     <div id="saved-notes-list"></div>
+    <div class="nav-space"></div>
   </section>
 
   <div class="menu-bd" id="menu-bd" onclick="toggleMenu()"></div>
@@ -596,6 +602,8 @@ onAuthChange(function(user){
       renderNotes();
     });
     initNotificaciones();
+    var ta = document.getElementById('new-note-input');
+    if (ta && !ta._auto){ ta._auto = true; ta.addEventListener('input', function(){ autoCrecer(ta); }); }
   } else {
     currentUid = null;
     document.getElementById('login-gate').classList.remove('hidden');
@@ -692,6 +700,7 @@ window.convertirNota = function(id){
   notaOrigenId = id;
   document.getElementById('new-note-input').value = nota.text;
   document.getElementById('note-char-count').textContent = nota.text.length+' caracteres';
+  autoCrecer(document.getElementById('new-note-input'));
   procesarConIA();
 };
 window.eliminarNota = function(id){
@@ -717,7 +726,8 @@ window.procesarConIA = function(){
   }).then(function(r){ return r.json(); }).then(function(parsed){
     previewTasks = parsed.tareas.map(function(t){ return { id: uid(), titulo: t.titulo, cuadrante: t.cuadrante, fecha: t.fecha, nota: t.nota, selected: true }; });
     mostrarPreview();
-    document.getElementById('new-note-input').value = '';
+    var ta2 = document.getElementById('new-note-input');
+    ta2.value = ''; autoCrecer(ta2);
     document.getElementById('note-char-count').textContent = '0 caracteres';
     btn.disabled = false; btn.classList.remove('loading');
   }).catch(function(err){
@@ -1326,6 +1336,11 @@ function renderDetail(){
 }
 
 // ---------- NOTAS ----------
+function autoCrecer(el){
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 320) + 'px';
+}
 window.guardarNotaRapida = function(){
   notaOrigenId = null;
   var input = document.getElementById('new-note-input');
@@ -1333,6 +1348,7 @@ window.guardarNotaRapida = function(){
   if (!text) { showToast('Escribe algo primero'); return; }
   setDoc(noteDoc(currentUid, uid()), { text: text, ts: Date.now() });
   input.value = '';
+  autoCrecer(input);
   document.getElementById('note-char-count').textContent = '';
   showToast('Nota guardada');
 };
