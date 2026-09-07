@@ -240,6 +240,54 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 .nav .badge{position:absolute;transform:translate(15px,-4px);background:var(--rojo);color:#fff;border-radius:10px;
   font-size:10px;font-weight:800;padding:1px 5px;display:none;}
 
+
+/* ---- cabecera compacta de usuario ---- */
+.topacts{display:flex;gap:7px;flex-shrink:0;}
+.avatar{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--blue-soft);
+  color:var(--fiordo);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+.menu-bd{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.18);display:none;}
+.menu-bd.open{display:block;}
+.menu{position:fixed;top:calc(64px + env(safe-area-inset-top));right:14px;z-index:61;min-width:210px;max-width:calc(100vw - 28px);
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:6px;display:none;}
+.menu.open{display:block;}
+.menu .who-name{padding:10px 12px 8px;font-size:13px;color:var(--t3);word-break:break-word;border-bottom:1px solid var(--border-in);margin-bottom:4px;}
+.menu button{display:block;width:100%;text-align:left;background:none;border:none;border-radius:10px;
+  padding:12px;font-size:15px;font-weight:600;color:var(--t1);cursor:pointer;min-height:44px;}
+.menu button.danger{color:var(--rojo);}
+
+/* ---- aviso de recordatorios en modo compacto ---- */
+.notif.compact{border-left-color:var(--verde);padding:9px 13px;margin-bottom:14px;gap:9px;}
+.notif.compact .notif-ico{width:17px;height:17px;color:var(--verde);}
+.notif.compact .notif-t{font-size:13px;font-weight:600;color:var(--t3);}
+.notif.compact .notif-s{display:none;}
+.notif.compact .btn-notif{background:none;border:none;color:var(--t3);font-size:13px;font-weight:600;
+  padding:6px 4px;min-height:34px;text-decoration:underline;}
+
+/* ---- fila de tarea pulsable ---- */
+.trow .tbody{cursor:pointer;}
+.trow .tbody:active{opacity:.6;}
+
+/* ---- día vacío compacto en la semana ---- */
+.wk-empty{display:flex;align-items:baseline;gap:9px;padding:9px 2px;border-bottom:1px solid var(--border-in);margin-bottom:2px;}
+.wk-empty .d{font-size:14px;font-weight:600;color:var(--t3);}
+.wk-empty .s{font-size:13px;color:var(--t4);}
+.wk-empty:last-of-type{margin-bottom:16px;}
+
+/* ---- hoja de detalle de tarea ---- */
+.sheet-bd{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.35);display:none;}
+.sheet-bd.open{display:block;}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:640px;margin:0 auto;
+  background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));display:none;max-height:82vh;overflow-y:auto;}
+.sheet.open{display:block;}
+.sheet-grab{width:38px;height:4px;border-radius:2px;background:var(--surface-3);margin:0 auto 14px;}
+.sheet h3{font-size:19px;font-weight:700;line-height:1.3;letter-spacing:-.3px;}
+.sheet .plazo{font-size:14px;margin-top:6px;}
+.sheet-meta{margin-top:16px;padding-top:14px;border-top:1px solid var(--border-in);}
+.sheet-meta .k{font-size:12px;font-weight:700;color:var(--t3);margin-bottom:3px;}
+.sheet-meta .v{font-size:15px;line-height:1.5;margin-bottom:13px;}
+.sheet-acts{display:flex;gap:9px;margin-top:6px;}
+
 .view{display:none;} .view.active{display:block;}
 .empty-state{text-align:center;padding:44px 20px;color:var(--t3);}
 .empty-state p{font-size:15px;line-height:1.6;}
@@ -265,8 +313,6 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 
 <div id="app-root" class="hidden">
 
-  <div class="who"><span id="who-email"></span><button onclick="__agendaLogout()">Cerrar sesión</button></div>
-
   <!-- ===== INICIO ===== -->
   <section id="view-inicio" class="view active">
     <div class="topbar">
@@ -274,9 +320,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
         <div class="h-title">Hoy</div>
         <div class="h-sub" id="inicio-fecha"></div>
       </div>
-      <button class="theme-btn" onclick="toggleTema()" aria-label="Cambiar tema">
-        <svg id="theme-ico" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>
-      </button>
+      <div class="topacts"><button class="theme-btn" onclick="toggleTema()" aria-label="Cambiar tema"><svg class="theme-ico" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg></button><button class="avatar" onclick="toggleMenu()" aria-label="Cuenta"><span class="avatar-ini">·</span></button></div>
     </div>
     <div class="notif" id="notif-banner">
       <div class="notif-ico"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6z" stroke-linejoin="round"/><path d="M10 20a2 2 0 004 0" stroke-linecap="round"/></svg></div>
@@ -288,7 +332,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 
   <!-- ===== TAREAS ===== -->
   <section id="view-tareas" class="view">
-    <div class="topbar"><div class="h-title">Tareas</div></div>
+    <div class="topbar"><div class="h-title">Tareas</div><div class="topacts"><button class="theme-btn" onclick="toggleTema()" aria-label="Cambiar tema"><svg class="theme-ico" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg></button><button class="avatar" onclick="toggleMenu()" aria-label="Cuenta"><span class="avatar-ini">·</span></button></div></div>
     <div class="tools">
       <div class="seg">
         <button id="seg-pend" class="on" onclick="setEstado('pend')">Pendientes</button>
@@ -347,9 +391,10 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
   <section id="view-calendario" class="view">
     <div class="cal-top">
       <div class="h-title" id="cal-title"></div>
-      <div class="arrows">
+      <div class="topacts">
         <button class="arrow" onclick="calPrev()" aria-label="Anterior"><svg viewBox="0 0 24 24"><polyline points="15 5 8 12 15 19"/></svg></button>
         <button class="arrow" onclick="calNext()" aria-label="Siguiente"><svg viewBox="0 0 24 24"><polyline points="9 5 16 12 9 19"/></svg></button>
+        <button class="avatar" onclick="toggleMenu()" aria-label="Cuenta"><span class="avatar-ini">·</span></button>
       </div>
     </div>
     <div class="seg" style="margin-bottom:16px;">
@@ -389,7 +434,7 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
 
   <!-- ===== NOTAS ===== -->
   <section id="view-notas" class="view">
-    <div class="topbar"><div class="h-title">Notas</div></div>
+    <div class="topbar"><div class="h-title">Notas</div><div class="topacts"><button class="theme-btn" onclick="toggleTema()" aria-label="Cambiar tema"><svg class="theme-ico" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg></button><button class="avatar" onclick="toggleMenu()" aria-label="Cuenta"><span class="avatar-ini">·</span></button></div></div>
     <textarea class="note-field" id="new-note-input" placeholder="¿Qué necesitas recordar?"></textarea>
     <div class="note-meta" id="note-char-count"></div>
     <div class="row2">
@@ -409,6 +454,15 @@ h2.sec.rojo{color:var(--rojo);} h2.sec.gris{color:var(--t3);}
     <h2 class="sec">Recientes</h2>
     <div id="saved-notes-list"></div>
   </section>
+
+  <div class="menu-bd" id="menu-bd" onclick="toggleMenu()"></div>
+  <div class="menu" id="user-menu">
+    <div class="who-name" id="who-email"></div>
+    <button class="danger" onclick="__agendaLogout()">Cerrar sesión</button>
+  </div>
+
+  <div class="sheet-bd" id="sheet-bd" onclick="cerrarDetalle()"></div>
+  <div class="sheet" id="task-sheet"><div class="sheet-grab"></div><div id="sheet-body"></div></div>
 
   <!-- ===== NAVEGACIÓN ===== -->
   <nav class="nav">
@@ -459,7 +513,9 @@ onAuthChange(function(user){
     currentUid = user.uid;
     document.getElementById('login-gate').classList.add('hidden');
     document.getElementById('app-root').classList.remove('hidden');
-    document.getElementById('who-email').textContent = user.displayName || user.email || 'Sesión activa';
+    var nombre = user.displayName || user.email || 'Sesión activa';
+    document.getElementById('who-email').textContent = nombre;
+    pintarAvatar(user.displayName || '');
     unsubItems = onSnapshot(query(itemsCollection(currentUid)), function(snap){
       items = [];
       snap.forEach(function(d){ items.push(Object.assign({id:d.id}, d.data())); });
@@ -514,6 +570,14 @@ function initNotificaciones(){
   } else {
     btn.textContent = 'Activar';
     status.textContent = 'Activa las notificaciones para recibir recordatorios reales';
+  }
+  var banner = document.getElementById('notif-banner');
+  if (banner) {
+    var activas = btn.classList.contains('on');
+    banner.classList.toggle('compact', activas);
+    document.querySelector('#notif-banner .notif-t').textContent =
+      activas ? 'Recordatorios activados' : 'Recordatorios';
+    if (activas) btn.textContent = 'Pausar';
   }
 }
 window.toggleNotificaciones = function(){
@@ -720,18 +784,23 @@ window.editarTarea = function(id){
   document.getElementById('add-form').scrollIntoView({behavior:'smooth'});
 };
 
+function fmtRecordatorio(fecha, hora){
+  if (!fecha) return hora || '';
+  var d = new Date(fecha+'T00:00:00');
+  return cap(d.toLocaleDateString('es-CL',{day:'numeric',month:'short'}).replace('.','')) + (hora?' · '+hora:'');
+}
 function reminderSummary(t){
   var parts = [];
   if (t.reminders && typeof t.reminders === 'object') {
     var keys = Object.keys(t.reminders);
     if (keys.length === 1) {
       var r = t.reminders[keys[0]];
-      parts.push(''+r.date+' '+r.time);
+      parts.push(fmtRecordatorio(r.date, r.time));
     } else if (keys.length > 1) {
       parts.push(''+keys.length+' recordatorios');
     }
   } else if (t.reminder && t.reminder.date) {
-    parts.push(''+t.reminder.date+' '+t.reminder.time);
+    parts.push(fmtRecordatorio(t.reminder.date, t.reminder.time));
   }
   if (t.reminderDaily && t.reminderDaily.active) {
     parts.push('Diario '+t.reminderDaily.time+' (desde '+t.reminderDaily.daysBefore+'d antes)');
@@ -748,12 +817,21 @@ function aplicarTema(t){
   try { localStorage.setItem('acTema', t); } catch(e){}
   var m = document.querySelector('meta[name="theme-color"]');
   if (m) m.setAttribute('content', t==='oscuro' ? '#171D22' : '#FFFFFF');
-  var ico = document.getElementById('theme-ico');
-  if (ico) ico.innerHTML = (t==='oscuro')
-    ? '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>'
-    : '<path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/>';
+  var luna = '<path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/>';
+  var sol  = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>';
+  document.querySelectorAll('.theme-ico').forEach(function(ico){ ico.innerHTML = (t==='oscuro') ? sol : luna; });
 }
 (function(){ var t='claro'; try{ t = localStorage.getItem('acTema') || 'claro'; }catch(e){} aplicarTema(t); })();
+
+window.toggleMenu = function(){
+  var m = document.getElementById('user-menu'), b = document.getElementById('menu-bd');
+  var abrir = !m.classList.contains('open');
+  m.classList.toggle('open', abrir); b.classList.toggle('open', abrir);
+};
+function pintarAvatar(nombre){
+  var ini = (nombre||'').trim().split(/\s+/).slice(0,2).map(function(p){ return p.charAt(0); }).join('').toUpperCase() || '·';
+  document.querySelectorAll('.avatar-ini').forEach(function(e){ e.textContent = ini; });
+}
 
 // ---------- helpers de plazo ----------
 // Regla: rojo = ya vencida (día anterior o antes). Ocre = vence hoy o mañana.
@@ -781,24 +859,53 @@ function esc2(s){ return esc(s); }
 
 function filaTarea(t){
   var p = plazoInfo(t);
-  var rt = reminderSummary(t).map(function(x){ return '<span class="rtag">'+esc(x)+'</span>'; }).join('');
   return '<div class="trow '+(p.borde||'')+(t.done?' done':'')+'">'
     + '<button class="cb" onclick="toggleDone(\''+t.id+'\')" aria-label="Completar">'
     + (t.done?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</button>'
-    + '<div class="tbody"><div class="ttitle">'+esc(t.title)+'</div>'
+    + '<div class="tbody" onclick="abrirDetalle(\''+t.id+'\')">'
+    + '<div class="ttitle">'+esc(t.title)+'</div>'
     + (t.done?'':'<div class="tplazo '+p.clase+'">'+p.texto+'</div>')
-    + (t.note?'<div class="tnote">'+esc(t.note)+'</div>':'')
-    + rt
-    + '<div class="tacts">'+(t.done?'':'<button class="tbtn" onclick="editarTarea(\''+t.id+'\')">Editar</button>')
-    + '<button class="tbtn del" onclick="eliminarTarea(\''+t.id+'\')">Eliminar</button></div>'
     + '</div></div>';
 }
 function filaTareaCompacta(t){
   var p = plazoInfo(t);
   return '<div class="trow '+(p.borde||'')+'">'
     + '<button class="cb" onclick="toggleDone(\''+t.id+'\')" aria-label="Completar"></button>'
-    + '<div class="tbody"><div class="ttitle">'+esc(t.title)+'</div>'
+    + '<div class="tbody" onclick="abrirDetalle(\''+t.id+'\')"><div class="ttitle">'+esc(t.title)+'</div>'
     + '<div class="tplazo '+p.clase+'">'+p.texto+'</div></div></div>';
+}
+
+window.abrirDetalle = function(id){
+  var t = items.find(function(x){ return x.id===id; });
+  if (!t) return;
+  var p = plazoInfo(t);
+  var qL = { q1:'Urgente e importante', q2:'Importante — planificar', q3:'Urgente — delegar', q4:'Sin urgencia' };
+  var h = '<h3>'+esc(t.title)+'</h3>'
+    + (t.done ? '<div class="plazo" style="color:var(--verde);font-weight:700;">Completada</div>'
+              : '<div class="plazo '+p.clase+'" style="font-weight:700;">'+p.texto+'</div>')
+    + '<div class="sheet-meta">';
+  if (t.note) h += '<div class="k">Nota</div><div class="v">'+esc(t.note)+'</div>';
+  h += '<div class="k">Prioridad</div><div class="v">'+(qL[t.quad]||'—')+'</div>';
+  var rs = reminderSummary(t);
+  if (rs.length) h += '<div class="k">Recordatorios</div><div class="v">'+rs.map(esc).join('<br>')+'</div>';
+  if (t.created) h += '<div class="k">Creada</div><div class="v">'+fmtCreada(t.created)+'</div>';
+  h += '</div><div class="sheet-acts">'
+    + (t.done?'':'<button class="btn-prim" onclick="editarDesdeDetalle(\''+t.id+'\')">Editar</button>')
+    + '<button class="btn-sec" style="color:var(--rojo);" onclick="eliminarDesdeDetalle(\''+t.id+'\')">Eliminar</button>'
+    + '</div>';
+  document.getElementById('sheet-body').innerHTML = h;
+  document.getElementById('task-sheet').classList.add('open');
+  document.getElementById('sheet-bd').classList.add('open');
+};
+window.cerrarDetalle = function(){
+  document.getElementById('task-sheet').classList.remove('open');
+  document.getElementById('sheet-bd').classList.remove('open');
+};
+window.editarDesdeDetalle = function(id){ cerrarDetalle(); switchView('tareas'); editarTarea(id); };
+window.eliminarDesdeDetalle = function(id){ cerrarDetalle(); eliminarTarea(id); };
+function fmtCreada(ts){
+  var d = new Date(ts);
+  return cap(d.toLocaleDateString('es-CL',{day:'numeric',month:'long'}).replace('.',''));
 }
 
 // ---------- INICIO ----------
@@ -1049,13 +1156,14 @@ function renderWeek(lun){
 
     var it = itemsFor(key);
     var pend = it.tasks.filter(function(t){ return !t.done; });
-    agenda += '<h2 class="sec'+(it.evts.length||pend.length?'':' gris')+'">'
-      + cap(d.toLocaleDateString('es-CL',{weekday:'long',day:'numeric'}))
-      + (esHoy?' <span style="color:var(--verde);font-weight:700;">· hoy</span>':'') + '</h2>';
+    var etiqueta = cap(d.toLocaleDateString('es-CL',{weekday:'long',day:'numeric'}));
+
     if (!it.evts.length && !pend.length){
-      agenda += '<div class="empty-line">Sin actividad</div>';
+      agenda += '<div class="wk-empty"><span class="d">'+etiqueta+'</span><span class="s">Sin actividad</span></div>';
       continue;
     }
+    agenda += '<h2 class="sec" style="margin-top:16px;">'+etiqueta
+      + (esHoy?' <span style="color:var(--verde);font-weight:700;">· hoy</span>':'') + '</h2>';
     agenda += '<div class="blk'+(esHoy?' today-blk':'')+'" style="margin-bottom:18px;">';
     var filas = [];
     it.evts.forEach(function(e){
@@ -1065,8 +1173,9 @@ function renderWeek(lun){
     });
     pend.forEach(function(t){
       var p = plazoInfo(t);
-      var cls = p.grupo==='atrasada' ? 'vence-rojo' : (p.grupo==='hoy'||p.clase==='ocre' ? 'vence-ocre' : 'vence-neutro');
-      filas.push('<div class="erow"><span class="when '+cls+'">vence</span>'
+      var pasada = p.grupo==='atrasada';
+      var cls = pasada ? 'vence-rojo' : (p.clase==='ocre' ? 'vence-ocre' : 'vence-neutro');
+      filas.push('<div class="erow"><span class="when '+cls+'">'+(pasada?'venció':'vence')+'</span>'
         + '<span class="et">'+esc(t.title)+'</span></div>');
     });
     agenda += filas.join('<div class="blk-sep plain"></div>') + '</div>';
