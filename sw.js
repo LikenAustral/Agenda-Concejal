@@ -1,7 +1,7 @@
 // Service worker: cachea el app shell para que abra offline/con mala señal,
 // y muestra las notificaciones push que llegan aunque la app esté cerrada.
 
-const CACHE_NAME = 'agenda-concejal-v2';
+const CACHE_NAME = 'agenda-concejal-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -56,12 +56,27 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = { title: 'Recordatorio', body: event.data ? event.data.text() : '' }; }
-  const title = data.title || '🔔 Recordatorio — Agenda Concejal';
+  // FCM puede mandar el contenido en tres sitios distintos según cómo lo
+  // arme la Cloud Function: anidado en "notification", anidado en "data", o
+  // suelto en la raíz. Antes solo se miraba la raíz, así que el nombre de la
+  // tarea nunca llegaba y siempre salía el texto de respaldo.
+  const n = data.notification || {};
+  const d = data.data || {};
+  const tituloCrudo = n.title || d.title || data.title || '';
+  const textoCrudo  = n.body  || d.body  || data.body  || '';
+
+  // Lo útil es el nombre de la tarea, así que va al título: en la pantalla
+  // bloqueada solo se lee la primera línea.
+  const title = textoCrudo || tituloCrudo || 'Recordatorio — Agenda Concejal';
+  const cuerpo = textoCrudo ? (tituloCrudo || 'Recordatorio') : '';
+
   const options = {
-    body: data.body || '',
+    body: cuerpo,
     icon: './icon-192.png',
     badge: './icon-192.png',
-    data: { url: data.url || './index.html' }
+    silent: false,
+    vibrate: [200, 100, 200],
+    data: { url: (d.url || data.url) || './index.html' }
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
